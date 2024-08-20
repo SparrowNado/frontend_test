@@ -1,6 +1,8 @@
-"use client";
+"use client"
 
-import { useState } from "react";
+
+
+import { useState, useEffect } from "react";
 import Avatar from "boring-avatars";
 import {
   FaRegCircleXmark,
@@ -8,23 +10,44 @@ import {
   FaPhone,
   FaEnvelope,
 } from "react-icons/fa6";
-
+import Controls from "./controls";
 import Modal from "./modal";
-
 import { User } from "./types/user";
 
 export type GalleryProps = {
   users: User[];
 };
+
 const Gallery = ({ users }: GalleryProps) => {
   const [usersList, setUsersList] = useState(users);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [sortField, setSortField] = useState<string>(""); // "" for empty
+  const [sortDirection, setSortDirection] = useState<string>("ascending");
+
+
+  //Used Locale Compare incase of existence of special characters
+  //Only Name , Company Name , Email added 
+  useEffect(() => {
+    const sortedUsers = [...usersList].sort((a, b) => {
+      let compareValue = 0;
+      if (sortField === "name") {
+        compareValue = a.name.localeCompare(b.name);
+      } else if (sortField === "company") {
+        compareValue = a.company.name.localeCompare(b.company.name);
+      } else if (sortField === "email") {
+        compareValue = a.email.localeCompare(b.email);
+      }
+
+      return sortDirection === "ascending" ? compareValue : -compareValue;
+    });
+
+    setUsersList(sortedUsers);
+  }, [sortField, sortDirection]);
 
   const handleModalOpen = (id: number) => {
     const user = usersList.find((item) => item.id === id) || null;
-
-    if(user) {
+    if (user) {
       setSelectedUser(user);
       setIsModalOpen(true);
     }
@@ -37,7 +60,13 @@ const Gallery = ({ users }: GalleryProps) => {
 
   return (
     <div className="user-gallery">
-      <h1 className="heading">Users</h1>
+      <div className="heading">
+        <h1 className="title">Users</h1>
+        <Controls
+          setSortField={setSortField}
+          setSortDirection={setSortDirection}
+        />
+      </div>
       <div className="items">
         {usersList.map((user, index) => (
           <div
